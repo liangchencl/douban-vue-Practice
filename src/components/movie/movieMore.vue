@@ -14,8 +14,8 @@
           </router-link>
         </li>
     </ul>
-    <navtype></navtype>
-    <download></download>
+    <!-- <navtype></navtype> -->
+    <!-- <download></download> -->
   </div>
 </template>
 
@@ -26,18 +26,33 @@
     name: 'movie',
     data() {
       return {
-        movies: ''
+        movies: '',
+        start: 0, // 开始
+        count: 15 // 显示条数
       }
     },
+    methods: {
+      _doubanapi() {
+        this.$http.jsonp('https://api.douban.com/v2/movie/' + this.$route.query.id + '?start=' + this.start + '&count=' + this.count, {}, {
+            headers: {},
+            emulateJSON: true
+          }).then(function (response) {
+            this.movies = response.data.subjects
+          })
+      },
+      menu() {
+        this.scroll = document.body.scrollTop  // 滚动条在Y轴上的滚动距离 document.body.scrollTop;
+        this.height01 = document.documentElement.clientHeight   // 可见区域的高度 document.body.clientHeight;
+        this.height02 = document.documentElement.scrollHeight
+        if (this.scroll + this.height01 === this.height02) {
+          this.count += 9
+          this._doubanapi()
+        }
+       }
+    },
     mounted: function () {
-      this.$http.jsonp('https://api.douban.com/v2/movie/' + this.$route.query.id, {}, {
-        headers: {},
-        emulateJSON: true
-      }).then(function (response) {
-        // this.articles = response.data.subjects
-        this.movies = response.data.subjects
-        console.log(this.movies)
-      })
+      window.addEventListener('scroll', this.menu)
+      this._doubanapi()
     },
     components: {
       navtype,
